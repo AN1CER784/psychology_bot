@@ -87,7 +87,7 @@ async def add_record(message: Message, state: FSMContext, session: AsyncSession)
     data = await state.get_data()
     if not await orm_get_user_by_id(session, message.from_user.id):
         user_data = {'id': message.from_user.id, 'name': message.from_user.username,
-                     'phone': message.contact.phone_number, 'status': True}
+                     'phone': message.contact.phone_number.strip('+'), 'status': True}
         await orm_add_user(session, user_data)
     await orm_update_appointment_by_user(session, message.from_user.id, data)
     await message.answer(f"Запись на консультацию оформлена\n"

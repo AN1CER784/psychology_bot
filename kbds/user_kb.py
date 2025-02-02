@@ -5,9 +5,10 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.orm_query import orm_get_appointments_by_date, orm_get_appointment_by_user_id
+from filters.admin_filter import admin_ids
 
 
-async def headings_kb(session: AsyncSession, user_id):
+async def get_headings_kb(session: AsyncSession, user_id):
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="Трудности в построении отношений 🧐", callback_data="heading_1"))
     builder.add(InlineKeyboardButton(text="Как найти спутника жизни? 💕", callback_data="heading_2"))
@@ -15,11 +16,15 @@ async def headings_kb(session: AsyncSession, user_id):
     has_appointment = await orm_get_appointment_by_user_id(session, user_id)
     if has_appointment:
         sign_date = datetime.strftime(has_appointment.date_time, "%m.%d-%H:%M")
-        builder.add(InlineKeyboardButton(text="Просмотреть запись ⏺️", callback_data=f"check_appointment-{sign_date}"))
+        builder.add(
+            InlineKeyboardButton(text="Просмотреть запись ⏺️", callback_data=f"check_appointment-{sign_date}"))
     else:
         builder.add(InlineKeyboardButton(text="Записаться к специалисту ✍️", callback_data="make_appointment"))
+    if user_id in admin_ids:
+        builder.add(InlineKeyboardButton(text="Админ панель 🛠", callback_data="admin_panel"))
     builder.adjust(1)
     return builder.as_markup()
+
 
 first_heading_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Ошибки при построении отношений 🚫", callback_data="heading_1_1_1")],
@@ -42,7 +47,6 @@ third_heading_kb = InlineKeyboardMarkup(inline_keyboard=[
 back_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="↩️Вернуться в главное меню", callback_data="back_to_headings")],
 ])
-
 
 back_kb_and_cancel = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="↩️Вернуться в главное меню", callback_data="back_to_headings")],

@@ -2,8 +2,8 @@ from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from kbds.user_kb import headings_kb, first_heading_kb, third_heading_kb, second_heading_kb
+
 
 user_router = Router()
 

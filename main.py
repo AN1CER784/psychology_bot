@@ -2,8 +2,8 @@ import asyncio
 import logging
 from config import bot
 from aiogram import Dispatcher
-from aiogram.types import BotCommandScopeChat, BotCommandScopeAllPrivateChats
-from common.bot_cmds_list import admin, start
+from aiogram.types import BotCommandScopeAllPrivateChats
+from common.bot_cmds_list import start
 from database.clear_db import clear_db_on_time
 from database.orm_query import orm_del_outdate_appointments
 from handlers.admin import admin_router
@@ -15,7 +15,7 @@ from handlers.user.user_on_start import user_router
 from database.engine import create_db, session_maker
 from middlewares.db import DataBaseSession
 from filters.block_users_filter import IsFree
-from filters.admin_filter import admin_ids
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -44,11 +44,6 @@ async def main():
     dp.shutdown.register(on_shutdown)
     dp.update.middleware(DataBaseSession(session_pool=session_maker))
     await bot.delete_webhook(drop_pending_updates=True)
-    for admin_id in admin_ids:
-        await bot.set_my_commands(
-            commands=admin,
-            scope=BotCommandScopeChat(chat_id=admin_id)
-        )
     await bot.set_my_commands(
         commands=start,
         scope=BotCommandScopeAllPrivateChats()

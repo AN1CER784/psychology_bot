@@ -2,8 +2,6 @@
 from datetime import datetime
 
 from aiogram import F, Router
-
-from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.formatting import as_marked_section, Bold
@@ -19,9 +17,10 @@ admin_router = Router()
 admin_router.message.filter(IsAdmin())
 
 
-@admin_router.message(Command("admin"))
-async def admin(message: Message):
-    await message.answer("Вы вошли в админ панель", reply_markup=admin_kb)
+@admin_router.callback_query(F.data == "admin_panel")
+async def admin(callback: CallbackQuery):
+    await callback.answer()
+    await callback.message.edit_text("Вы вошли в админ панель", reply_markup=admin_kb)
 
 
 @admin_router.callback_query(F.data == "schedule")
