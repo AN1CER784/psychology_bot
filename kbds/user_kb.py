@@ -9,6 +9,12 @@ from filters.admin_filter import admin_ids
 
 
 async def get_headings_kb(session: AsyncSession, user_id):
+    """
+    Get main headings kb depending on who is a user
+    :param session:
+    :param user_id:
+    :return:
+    """
     builder = InlineKeyboardBuilder()
     builder.add(InlineKeyboardButton(text="Трудности в построении отношений 🧐", callback_data="heading_1"))
     builder.add(InlineKeyboardButton(text="Как найти спутника жизни? 💕", callback_data="heading_2"))
@@ -59,6 +65,13 @@ share_contact_kb = ReplyKeyboardMarkup(keyboard=[
 
 
 def get_callback_btns(*, btns: dict[str, str], sizes: tuple[int] = (2,)):
+    """
+    Generate callback keyboard
+
+    :param btns:
+    :param sizes:
+    :return:
+    """
     keyboard = InlineKeyboardBuilder()
     for text, data in btns.items():
         keyboard.add(InlineKeyboardButton(text=text, callback_data=data))
@@ -66,6 +79,13 @@ def get_callback_btns(*, btns: dict[str, str], sizes: tuple[int] = (2,)):
 
 
 async def generate_time_kb_for_user(session: AsyncSession, date: str):
+    """
+    Generate kb to choose time
+
+    :param session:
+    :param date:
+    :return:
+    """
     kb = InlineKeyboardBuilder()
     data = await orm_get_appointments_by_date(session, date)
     available_times = sorted([datetime.strftime(appointment.date_time, "%H:%M") for appointment in data])
@@ -77,6 +97,12 @@ async def generate_time_kb_for_user(session: AsyncSession, date: str):
 
 
 async def generate_after_chapter_kb(heading: int):
+    """
+    Generate kb after completing chapter
+
+    :param heading:
+    :return:
+    """
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text="Записаться к специалисту ✍️", callback_data="make_appointment"))
     kb.add(InlineKeyboardButton(text="↩️Вернуться к выбору раздела",
@@ -85,6 +111,14 @@ async def generate_after_chapter_kb(heading: int):
 
 
 async def generate_kb_for_chapters(heading: int, current_chapter: int, current_message: int):
+    """
+    Generate kb for navigating through chapters
+
+    :param heading:
+    :param current_chapter:
+    :param current_message:
+    :return:
+    """
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text="⬅️Назад",
                                 callback_data=f"back_to_chapters_{heading}"
@@ -96,6 +130,15 @@ async def generate_kb_for_chapters(heading: int, current_chapter: int, current_m
 
 
 async def generate_kb_for_test(test_num: int, question_index: int, current_score: int):
+    """
+    Generate kb for any test
+
+    :param test_num:
+    :param question_index:
+    :param current_score:
+    :return:
+    """
+
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text="Верно✅",
                                 callback_data=f"answertest_{test_num}_question_{question_index + 1}-{current_score + 1}"))

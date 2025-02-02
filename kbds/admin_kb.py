@@ -29,6 +29,13 @@ async def generate_back_kb_to_time_admin(date: str):
 
 
 async def generate_time_kb_for_admin(session: AsyncSession, date: str):
+    """
+    Generate kb for setting time by the admin
+
+    :param session:
+    :param date:
+    :return:
+    """
     kb = InlineKeyboardBuilder()
     times = (
         "10:00", "10:30", "11:00", "11:30", "12:00", "12:30",

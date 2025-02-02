@@ -10,9 +10,9 @@ user_chapters = Router()
 
 
 @user_chapters.callback_query(F.data.startswith("heading"))
-async def chapter1(callback: CallbackQuery, session: AsyncSession):
+async def chapters_processing(callback: CallbackQuery, session: AsyncSession):
     """
-    Обработчик рубрик
+    Processing of all chapters
 
     :param session:
     :param callback:

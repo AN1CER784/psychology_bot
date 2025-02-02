@@ -2,7 +2,7 @@ from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message, CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
-from kbds.user_kb import headings_kb, first_heading_kb, third_heading_kb, second_heading_kb
+from kbds.user_kb import get_headings_kb, first_heading_kb, third_heading_kb, second_heading_kb
 
 
 user_router = Router()
@@ -11,7 +11,7 @@ user_router = Router()
 @user_router.message(CommandStart())
 async def start(message: Message, session: AsyncSession):
     """
-    Приветствие при первом запуске
+    First message when start
 
     :param message:
     :return:
@@ -25,13 +25,13 @@ async def start(message: Message, session: AsyncSession):
         "Этот бот создан для того, чтобы помочь вам лучше понять себя и свои отношения. 🤖❤️\n\n"
         "Здесь я делюсь своим многолетним опытом и буду рада вашему участию! 🌟🙌\n\n"
         "Выбирайте рубрику, которая кажется вам наиболее интересной. 📚🔎\n\nИли же сразу запишитесь на консультацию✍️",
-        reply_markup=await headings_kb(session, message.from_user.id))
+        reply_markup=await get_headings_kb(session, message.from_user.id))
 
 
 @user_router.callback_query(F.data == "heading_1")
 async def first_heading(callback: CallbackQuery):
     """
-    Выбор первой рубрики
+    1st heading choice
 
     :param callback:
     :return:
@@ -44,7 +44,7 @@ async def first_heading(callback: CallbackQuery):
 @user_router.callback_query(F.data == "heading_2")
 async def second_heading(callback: CallbackQuery):
     """
-    Выбор первой рубрики
+    2nd heading choice
 
     :param callback:
     :return:
@@ -57,7 +57,7 @@ async def second_heading(callback: CallbackQuery):
 @user_router.callback_query(F.data == "heading_3")
 async def third_heading(callback: CallbackQuery):
     """
-    Выбор первой рубрики
+    3rd heading choice
 
     :param callback:
     :return:

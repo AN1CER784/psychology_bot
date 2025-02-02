@@ -87,7 +87,7 @@ async def orm_get_all_schedule(session: AsyncSession):
 async def orm_get_appointments_by_date(session: AsyncSession, date: str):
     dt_object = datetime.strptime(f'{datetime.now().year} {date}', '%Y %m.%d')
     next_day = dt_object + timedelta(days=1)
-    query = select(Schedule).where(Schedule.date_time >= dt_object, Schedule.date_time < next_day)
+    query = select(Schedule).where(Schedule.date_time >= dt_object, Schedule.date_time < next_day).options(selectinload(Schedule.user))
     result = await session.execute(query)
     return result.scalars().all()
 

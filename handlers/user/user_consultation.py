@@ -15,36 +15,10 @@ from kbds.user_kb import share_contact_kb, generate_time_kb_for_user, back_kb, b
 user_router_consult = Router()
 
 
-@user_router_consult.callback_query(F.data.startswith('get_') and F.data.endswith('_open'))
-async def user_day_choice(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
-    await callback.answer()
-    date = callback.data.split('_')[1]
-    await callback.message.edit_text("Выберите время", reply_markup=await generate_time_kb_for_user(session, date))
-    await state.update_data(date=date)
-
-
-@user_router_consult.callback_query(F.data.startswith('get_') and F.data.endswith('_close'))
-async def closed_user_day_choice(callback: CallbackQuery, session: AsyncSession):
-    await callback.answer()
-    await callback.message.delete()
-    await callback.message.answer("Запись на консультацию в этот день недоступна ❌",
-                                  reply_markup=await generate_schedule_kb(session, "get"))
-
-
-@user_router_consult.callback_query(F.data.startswith('getter_time_'))
-async def user_time_choice(callback: CallbackQuery, state: FSMContext):
-    await callback.answer()
-    time = callback.data.split('_')[2]
-    await state.update_data(time=time)
-    await callback.message.delete()
-    await callback.message.answer("Поделитесь своими контактными данными для записи на консультацию",
-                                  reply_markup=share_contact_kb)
-
-
 @user_router_consult.callback_query(F.data == "make_appointment")
-async def make_appointment(callback: CallbackQuery, session: AsyncSession):
+async def user_day_choice(callback: CallbackQuery, session: AsyncSession):
     """
-    Возврат к выбору разделов первой рубрики
+    Choose a day for consultation or send a note about the impossibility of this
 
     :param session:
     :param callback:
@@ -61,8 +35,46 @@ async def make_appointment(callback: CallbackQuery, session: AsyncSession):
         await callback.message.answer(
             "На данный момент запись не доступна\nМожете связаться напрямую по ссылке:\nhttps://t.me/natalya1970131")
 
+
+@user_router_consult.callback_query(F.data.startswith('get_') and F.data.endswith('_open'))
+async def user_time_choice(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
+    """
+    Go to choose time for consultation
+
+    :param callback:
+    :param state:
+    :param session:
+    :return:
+    """
+    await callback.answer()
+    date = callback.data.split('_')[1]
+    await callback.message.edit_text("Выберите время", reply_markup=await generate_time_kb_for_user(session, date))
+    await state.update_data(date=date)
+
+
+@user_router_consult.callback_query(F.data.startswith('get_') and F.data.endswith('_close'))
+async def closed_user_day_choice(callback: CallbackQuery, session: AsyncSession):
+    """
+    This day for consultation is closed
+
+    :param callback:
+    :param session:
+    :return:
+    """
+    await callback.answer()
+    await callback.message.delete()
+    await callback.message.answer("Запись на консультацию в этот день недоступна ❌",
+                                  reply_markup=await generate_schedule_kb(session, "get"))
+
+
 @user_router_consult.callback_query(F.data.startswith("check_appointment"))
 async def check_appointment(callback: CallbackQuery):
+    """
+    Check the appointment
+
+    :param callback:
+    :return:
+    """
     await callback.answer()
     sign_date = callback.data.split('-')[1]
     sign_time = callback.data.split('-')[2]
@@ -73,6 +85,13 @@ async def check_appointment(callback: CallbackQuery):
 
 @user_router_consult.callback_query(F.data == "cancel_appointment")
 async def cancel_appointment(callback: CallbackQuery, session: AsyncSession):
+    """
+    Cancel the appointment
+
+    :param callback:
+    :param session:
+    :return:
+    """
     await callback.answer()
     data = await orm_get_appointment_by_user_id(session, callback.from_user.id)
     await orm_del_user_appointment(session, callback.from_user.id)
@@ -83,7 +102,15 @@ async def cancel_appointment(callback: CallbackQuery, session: AsyncSession):
 
 
 @user_router_consult.message(F.contact.phone_number)
-async def add_record(message: Message, state: FSMContext, session: AsyncSession):
+async def make_appointment(message: Message, state: FSMContext, session: AsyncSession):
+    """
+    Make an appointment and save it to database
+
+    :param message:
+    :param state:
+    :param session:
+    :return:
+    """
     data = await state.get_data()
     if not await orm_get_user_by_id(session, message.from_user.id):
         user_data = {'id': message.from_user.id, 'name': message.from_user.username,
@@ -98,3 +125,20 @@ async def add_record(message: Message, state: FSMContext, session: AsyncSession)
                                 f"<b>{data.get('date')} - {data.get('time')}</b> ✅")
     await message.forward(chat_id=os.getenv("GROUP_ID"))
     await state.clear()
+
+
+@user_router_consult.callback_query(F.data.startswith('getter_time_'))
+async def user_contacts_share(callback: CallbackQuery, state: FSMContext):
+    """
+    Share contacts with us
+
+    :param callback:
+    :param state:
+    :return:
+    """
+    await callback.answer()
+    time = callback.data.split('_')[2]
+    await state.update_data(time=time)
+    await callback.message.delete()
+    await callback.message.answer("Поделитесь своими контактными данными для записи на консультацию",
+                                  reply_markup=share_contact_kb)

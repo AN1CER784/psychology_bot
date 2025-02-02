@@ -13,7 +13,7 @@ user_test = Router()
 @user_test.callback_query(F.data.startswith("test_"))
 async def start_test(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
     """
-    Переход к первому сообщению теста
+    Go to first test message of any test
 
     :param session:
     :param callback:
@@ -31,7 +31,7 @@ async def start_test(callback: CallbackQuery, state: FSMContext, session: AsyncS
 @user_test.callback_query(F.data.startswith("answertest_"))
 async def all_questions(callback: CallbackQuery, state: FSMContext, session: AsyncSession, first_init=None):
     """
-    Основная работа теста
+    The main work of any test
 
     :param session:
     :param first_init:
@@ -65,7 +65,7 @@ async def all_questions(callback: CallbackQuery, state: FSMContext, session: Asy
 @user_test.callback_query(F.data.startswith("end_testing"))
 async def end_test(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
     """
-    Завершение теста
+    The ending of any test
 
     :param session:
     :param callback:
