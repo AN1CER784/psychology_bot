@@ -98,7 +98,7 @@ async def cancel_appointment(callback: CallbackQuery, session: AsyncSession):
     await callback.message.edit_text("Запись на консультацию отменена ❌", reply_markup=back_kb)
     await bot.send_message(os.getenv("GROUP_ID"),
                            text=f"Запись на консультацию отменена ❌\n"
-                                f"<b>@{data.user.name} - {data.user.phone}\n{datetime.strftime(data.date_time, "%m.%d")} - {datetime.strftime(data.date_time, "%H:%M")}</b>")
+                                f"<b>@{data.user.name} - +{data.user.phone}\n{datetime.strftime(data.date_time, "%d.%m")} - {datetime.strftime(data.date_time, "%H:%M")}</b>")
 
 
 @user_router_consult.message(F.contact.phone_number)

@@ -11,7 +11,7 @@ from database.models import User, Schedule, Content, ContentMessage
 ############# Добавление информации в БД #############
 
 async def orm_add_available_date(session: AsyncSession, data: dict):
-    dt_object = datetime.strptime(f'{datetime.now().year} {data["date"]} {data["time"]}', '%Y %m.%d %H:%M')
+    dt_object = datetime.strptime(f'{datetime.now().year} {data["date"]} {data["time"]}', '%Y %d.%m %H:%M')
     obj = Schedule(date_time=dt_object)
     session.add(obj)
     await session.commit()
@@ -45,7 +45,7 @@ async def orm_add_content_message(session: AsyncSession, contents: list):
 ############# Обновление информации в БД #############
 
 async def orm_update_appointment_by_user(session: AsyncSession, user_id: int, data: dict):
-    date_time = datetime.strptime(f'{datetime.now().year} {data.get('date')} {data.get("time")}', '%Y %m.%d %H:%M')
+    date_time = datetime.strptime(f'{datetime.now().year} {data.get('date')} {data.get("time")}', '%Y %d.%m %H:%M')
     query = update(Schedule).where(Schedule.date_time == date_time).values(user_id=user_id)
     await session.execute(query)
     await session.commit()
@@ -72,7 +72,7 @@ async def orm_get_appointment_by_user_id(session: AsyncSession, user_id: int):
 
 
 async def orm_get_appointment_by_date_time(session: AsyncSession, date: str, time: str):
-    dt_object = datetime.strptime(f'{datetime.now().year} {date} {time}', '%Y %m.%d %H:%M')
+    dt_object = datetime.strptime(f'{datetime.now().year} {date} {time}', '%Y %d.%m %H:%M')
     query = select(Schedule).where(Schedule.date_time == dt_object).options(selectinload(Schedule.user))
     result = await session.execute(query)
     return result.scalar()
@@ -85,7 +85,7 @@ async def orm_get_all_schedule(session: AsyncSession):
 
 
 async def orm_get_appointments_by_date(session: AsyncSession, date: str):
-    dt_object = datetime.strptime(f'{datetime.now().year} {date}', '%Y %m.%d')
+    dt_object = datetime.strptime(f'{datetime.now().year} {date}', '%Y %d.%m')
     next_day = dt_object + timedelta(days=1)
     query = select(Schedule).where(Schedule.date_time >= dt_object, Schedule.date_time < next_day).options(selectinload(Schedule.user))
     result = await session.execute(query)
@@ -134,7 +134,7 @@ async def orm_get_ending_of_test(session: AsyncSession, test_num: int):
 ############# Удаление информации из БД #############
 
 async def orm_del_available_date(session: AsyncSession, data: dict):
-    dt_object = datetime.strptime(f'{datetime.now().year} {data["date"]} {data["time"]}', '%Y %m.%d %H:%M')
+    dt_object = datetime.strptime(f'{datetime.now().year} {data["date"]} {data["time"]}', '%Y %d.%m %H:%M')
     query = delete(Schedule).where(Schedule.date_time == dt_object)
     await session.execute(query)
     await session.commit()

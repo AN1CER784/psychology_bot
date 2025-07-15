@@ -1,21 +1,22 @@
 import asyncio
 import logging
-from config import bot
+
 from aiogram import Dispatcher
 from aiogram.types import BotCommandScopeAllPrivateChats
+
 from common.bot_cmds_list import start
+from config import bot
 from database.clear_db import clear_db_on_time
+from database.engine import create_db, session_maker
 from database.orm_query import orm_del_outdate_appointments
+from filters.block_users_filter import IsFree
 from handlers.admin import admin_router
 from handlers.back import admin_router_back, user_router_back
-from handlers.user.user_tests import user_test
 from handlers.user.user_consultation import user_router_consult
 from handlers.user.user_headings import user_chapters
 from handlers.user.user_on_start import user_router
-from database.engine import create_db, session_maker
+from handlers.user.user_tests import user_test
 from middlewares.db import DataBaseSession
-from filters.block_users_filter import IsFree
-
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -23,11 +24,12 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
 )
 
-
 dp = Dispatcher()
-dp.include_routers(admin_router, user_router, user_router_consult, admin_router_back, user_router_back, user_chapters, user_test)
+dp.include_routers(admin_router, user_router, user_router_consult, admin_router_back, user_router_back, user_chapters,
+                   user_test)
 dp.callback_query.filter(IsFree(session_maker))
 dp.message.filter(IsFree(session_maker))
+
 
 async def on_startup(bot):
     await create_db()
@@ -48,7 +50,8 @@ async def main():
         commands=start,
         scope=BotCommandScopeAllPrivateChats()
     )
-    await asyncio.gather(dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types()), clear_db_on_time(session_maker))
+    await asyncio.gather(dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types()),
+                         clear_db_on_time(session_maker))
 
 
 if __name__ == "__main__":

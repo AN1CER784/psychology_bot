@@ -21,7 +21,7 @@ async def get_headings_kb(session: AsyncSession, user_id):
     builder.add(InlineKeyboardButton(text="Сепарация ✂️", callback_data="heading_3"))
     has_appointment = await orm_get_appointment_by_user_id(session, user_id)
     if has_appointment:
-        sign_date = datetime.strftime(has_appointment.date_time, "%m.%d-%H:%M")
+        sign_date = datetime.strftime(has_appointment.date_time, "%d.%m-%H:%M")
         builder.add(
             InlineKeyboardButton(text="Просмотреть запись ⏺️", callback_data=f"check_appointment-{sign_date}"))
     else:

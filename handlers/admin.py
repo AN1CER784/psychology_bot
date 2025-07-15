@@ -139,19 +139,22 @@ async def watch_schedule(callback: CallbackQuery, session: AsyncSession):
     if schedule_dict["available_schedule"]:
         message_text += as_marked_section(
             Bold("Доступное расписание:"),
-            *(f"{datetime.strftime(appointment.date_time, "%m.%d")} в {datetime.strftime(appointment.date_time, "%H:%M")}" for appointment in schedule_dict["available_schedule"]),
+            *(f"{datetime.strftime(appointment.date_time, "%d.%m")} в {datetime.strftime(appointment.date_time, "%H:%M")}" for appointment in schedule_dict["available_schedule"]),
             marker="✅",
         ).as_html()
     if schedule_dict["users_schedule"]:
         message_text += as_marked_section(
             Bold("\n\nЗаписи на консультацию:"),
-            *(f"@{appointment.user.name} - {appointment.user.phone}, {datetime.strftime(appointment.date_time, "%m.%d")} в {datetime.strftime(appointment.date_time, "%H:%M")}" for appointment in schedule_dict["users_schedule"]),
+            *(f"@{appointment.user.name} - {appointment.user.phone}, {datetime.strftime(appointment.date_time, "%d.%m")} в {datetime.strftime(appointment.date_time, "%H:%M")}" for appointment in schedule_dict["users_schedule"]),
             marker="⏺️",
         ).as_html()
     if not schedule_dict.values():
         message_text += "Расписание на неделю не составлено"
 
-    await callback.message.edit_text(message_text, reply_markup=back_admin_kb)
+    if message_text:
+        await callback.message.edit_text(message_text, reply_markup=back_admin_kb)
+    else:
+        await callback.message.edit_text("Расписание на неделю не составлено", reply_markup=back_admin_kb)
 
 
 @admin_router.callback_query(F.data.startswith("watch_user_appointment_"))

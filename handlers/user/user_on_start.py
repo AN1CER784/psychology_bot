@@ -13,6 +13,7 @@ async def start(message: Message, session: AsyncSession):
     """
     First message when start
 
+    :param session:
     :param message:
     :return:
     """

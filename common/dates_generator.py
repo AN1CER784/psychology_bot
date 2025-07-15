@@ -8,5 +8,5 @@ async def generate_dates():
     :return:
     """
     today = datetime.now()
-    dates = [(today + timedelta(days=i)).strftime('%m.%d') for i in range(12)][1:]
+    dates = [(today + timedelta(days=i)).strftime('%d.%m') for i in range(12)][1:]
     return dates
