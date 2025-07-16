@@ -2,7 +2,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message, CallbackQuery
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-from database.orm_query import orm_get_user_by_id
+from database.orm_queries.user import orm_get_user_by_id
 
 
 class IsFree(BaseFilter):

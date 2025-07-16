@@ -2,23 +2,56 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.orm_query import orm_get_appointments_by_date
+from database.orm_queries.schedule import orm_get_appointments_by_date
 
 back_admin_kb = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="⬅️Назад", callback_data="back_to_admin")],
+    [InlineKeyboardButton(text="⬅️Вернуться в меню админа", callback_data="back_to_admin")],
 ])
 
 admin_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Добавить/Удалить консультацию🗓", callback_data="schedule")],
     [InlineKeyboardButton(text="Просмотреть расписание 📝", callback_data="watch_schedule")],
     [InlineKeyboardButton(text="Управление пользователями ⚖️", callback_data="manage_users")],
-    [InlineKeyboardButton(text="Выйти из админ панели ↩️", callback_data="back_to_headings")],
+    [InlineKeyboardButton(text="Управление активностями для пользователей 🛠", callback_data="manage_activities")],
+    [InlineKeyboardButton(text="Выйти из админ панели ↩️", callback_data="back_to_menu")],
 ])
 
-block_users_kb = InlineKeyboardMarkup(inline_keyboard=[
+admin_block_users_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Заблокировать пользователя ❌", callback_data="block_user"),
      InlineKeyboardButton(text="Разблокировать пользователя ✅", callback_data="unblock_user")],
     [InlineKeyboardButton(text="⬅️Назад", callback_data="back_to_admin")]
+])
+
+admin_user_activities_kb = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Добавить активность рубрика ➕", callback_data="add_topic_activity")],
+    [InlineKeyboardButton(text="Добавить активность тест ➕", callback_data="add_test_activity")],
+    [InlineKeyboardButton(text="Удалить активность 🗑", callback_data="del_activity")],
+    [InlineKeyboardButton(text="Выбрать актуальную активность для пользователей 🧑‍💻",
+                          callback_data="choose_actual_activity")],
+    [InlineKeyboardButton(text="⬅️Вернуться в меню админа", callback_data="back_to_admin")]
+])
+
+admin_start_fill_topic_kb = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Заполнить", callback_data="add_topic_item")]
+])
+
+admin_start_fill_test_kb = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Заполнить", callback_data="add_question")]
+])
+
+admin_add_topic_item_kb = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Закончить", callback_data="finish_topic")],
+    [InlineKeyboardButton(text="Добавить раздел", callback_data="add_topic_item")]
+])
+
+admin_add_test_item_kb = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Закончить", callback_data="finish_test")],
+    [InlineKeyboardButton(text="Добавить вопрос", callback_data="add_question")]
+])
+
+admin_continue_kb = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Продолжить", callback_data="continue")],
+    [InlineKeyboardButton(text="⬅️Вернуться в меню админа", callback_data="back_to_admin")]
 ])
 
 
