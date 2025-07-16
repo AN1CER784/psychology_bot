@@ -2,8 +2,8 @@ from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from common.dates_generator import generate_dates
-from database.orm_query import orm_get_appointments_by_date
+from common.utils import generate_dates
+from database.orm_queries.schedule import orm_get_appointments_by_date
 
 
 async def generate_schedule_kb(session: AsyncSession, side: str):

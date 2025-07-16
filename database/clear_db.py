@@ -1,7 +1,8 @@
 import asyncio
 
 import schedule
-from database.orm_query import orm_del_outdate_appointments
+
+from database.orm_queries.schedule import orm_del_outdate_appointments
 
 
 async def clear_db_on_time(session_pool):

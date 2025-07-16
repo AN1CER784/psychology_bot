@@ -7,10 +7,12 @@ from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import bot
-from database.orm_query import orm_get_appointment_by_user_id, orm_get_all_schedule, orm_update_appointment_by_user, \
-    orm_add_user, orm_get_user_by_id, orm_del_user_appointment
+from database.orm_queries.common import orm_add_model
+from database.orm_queries.schedule import orm_get_all_schedule, orm_get_appointment_by_user_id, \
+    orm_del_user_appointment, orm_update_appointment_by_user
+from database.orm_queries.user import orm_get_user_by_id
 from kbds.schedule_kb import generate_schedule_kb
-from kbds.user_kb import share_contact_kb, generate_time_kb_for_user, back_kb, back_kb_and_cancel
+from kbds.user_kb import share_contact_kb, generate_time_kb_for_user, back_kb_and_cancel, back_kb
 
 user_router_consult = Router()
 
@@ -36,7 +38,7 @@ async def user_day_choice(callback: CallbackQuery, session: AsyncSession):
             "На данный момент запись не доступна\nМожете связаться напрямую по ссылке:\nhttps://t.me/natalya1970131")
 
 
-@user_router_consult.callback_query(F.data.startswith('get_') and F.data.endswith('_open'))
+@user_router_consult.callback_query(F.data.startswith('get_'), F.data.endswith('_open'))
 async def user_time_choice(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
     """
     Go to choose time for consultation
@@ -52,7 +54,7 @@ async def user_time_choice(callback: CallbackQuery, state: FSMContext, session: 
     await state.update_data(date=date)
 
 
-@user_router_consult.callback_query(F.data.startswith('get_') and F.data.endswith('_close'))
+@user_router_consult.callback_query(F.data.startswith('get_'), F.data.endswith('_close'))
 async def closed_user_day_choice(callback: CallbackQuery, session: AsyncSession):
     """
     This day for consultation is closed
@@ -98,7 +100,7 @@ async def cancel_appointment(callback: CallbackQuery, session: AsyncSession):
     await callback.message.edit_text("Запись на консультацию отменена ❌", reply_markup=back_kb)
     await bot.send_message(os.getenv("GROUP_ID"),
                            text=f"Запись на консультацию отменена ❌\n"
-                                f"<b>@{data.user.name} - +{data.user.phone}\n{datetime.strftime(data.date_time, "%d.%m")} - {datetime.strftime(data.date_time, "%H:%M")}</b>")
+                                f'<b>@{data.user.name} - +{data.user.phone}\n{datetime.strftime(data.date_time, "%d.%m")} - {datetime.strftime(data.date_time, "%H:%M")}</b>')
 
 
 @user_router_consult.message(F.contact.phone_number)
@@ -115,7 +117,7 @@ async def make_appointment(message: Message, state: FSMContext, session: AsyncSe
     if not await orm_get_user_by_id(session, message.from_user.id):
         user_data = {'id': message.from_user.id, 'name': message.from_user.username,
                      'phone': message.contact.phone_number.strip('+'), 'status': True}
-        await orm_add_user(session, user_data)
+        await orm_add_model(session, "User", user_data)
     await orm_update_appointment_by_user(session, message.from_user.id, data)
     await message.answer(f"Запись на консультацию оформлена\n"
                          f"<b>{data.get('date')} - {data.get('time')}</b> ✅\nОжидайте, с вами свяжется специалист",

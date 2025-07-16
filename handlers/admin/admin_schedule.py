@@ -1,35 +1,22 @@
-
 from datetime import datetime
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import CallbackQuery
 from aiogram.utils.formatting import as_marked_section, Bold
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.orm_query import orm_get_appointment_by_date_time, orm_get_appointments_by_date, orm_del_available_date, \
-    orm_add_available_date, orm_get_all_schedule, orm_get_all_users, orm_update_user_status_by_id
-from filters.admin_filter import IsAdmin, admin_ids
+from database.orm_queries.schedule import orm_get_appointments_by_date, orm_add_available_date, orm_del_available_date, \
+    orm_get_all_schedule, orm_get_appointment_by_date_time
+from filters.admin_filter import IsAdmin
 from kbds.admin_kb import admin_kb, generate_time_kb_for_admin, back_admin_kb, generate_back_kb_to_time_admin
 from kbds.schedule_kb import generate_schedule_kb
 
-admin_router = Router()
-admin_router.message.filter(IsAdmin())
+admin_router_schedule = Router()
+admin_router_schedule.message.filter(IsAdmin())
 
 
-@admin_router.callback_query(F.data == "admin_panel")
-async def admin(callback: CallbackQuery):
-    """
-    Open admin panel
-
-    :param callback:
-    :return:
-    """
-    await callback.answer()
-    await callback.message.edit_text("Вы вошли в админ панель", reply_markup=admin_kb)
-
-
-@admin_router.callback_query(F.data == "schedule")
+@admin_router_schedule.callback_query(F.data == "schedule")
 async def admin_day_choice(callback: CallbackQuery, session: AsyncSession):
     """
     Choose day for consultation
@@ -43,7 +30,7 @@ async def admin_day_choice(callback: CallbackQuery, session: AsyncSession):
                                      reply_markup=await generate_schedule_kb(session, "set"))
 
 
-@admin_router.callback_query(F.data.startswith('set_'))
+@admin_router_schedule.callback_query(F.data.startswith('set_'))
 async def admin_time_choice(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
     """
     Choose time for consultation
@@ -59,7 +46,7 @@ async def admin_time_choice(callback: CallbackQuery, state: FSMContext, session:
     await state.update_data(date=date)
 
 
-@admin_router.callback_query(F.data.startswith('setter_time_'))
+@admin_router_schedule.callback_query(F.data.startswith('setter_time_'))
 async def admin_set_choice(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
     """
     Set time for consultation
@@ -74,7 +61,7 @@ async def admin_set_choice(callback: CallbackQuery, state: FSMContext, session: 
     await admin_edit_time_in_database(callback, state, session)
 
 
-@admin_router.callback_query(F.data == "submit")
+@admin_router_schedule.callback_query(F.data == "submit")
 async def admin_submit_choice(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
     """
     Submit changes
@@ -117,7 +104,7 @@ async def admin_edit_time_in_database(callback: CallbackQuery, state: FSMContext
     await callback.message.edit_reply_markup(reply_markup=await generate_time_kb_for_admin(session, data.get('date')))
 
 
-@admin_router.callback_query(F.data == "watch_schedule")
+@admin_router_schedule.callback_query(F.data == "watch_schedule")
 async def watch_schedule(callback: CallbackQuery, session: AsyncSession):
     """
     Watch all schedule
@@ -139,13 +126,17 @@ async def watch_schedule(callback: CallbackQuery, session: AsyncSession):
     if schedule_dict["available_schedule"]:
         message_text += as_marked_section(
             Bold("Доступное расписание:"),
-            *(f"{datetime.strftime(appointment.date_time, "%d.%m")} в {datetime.strftime(appointment.date_time, "%H:%M")}" for appointment in schedule_dict["available_schedule"]),
+            *(
+            f'{datetime.strftime(appointment.date_time, "%d.%m")} в {datetime.strftime(appointment.date_time, "%H:%M")}'
+            for appointment in schedule_dict["available_schedule"]),
             marker="✅",
         ).as_html()
     if schedule_dict["users_schedule"]:
         message_text += as_marked_section(
             Bold("\n\nЗаписи на консультацию:"),
-            *(f"@{appointment.user.name} - {appointment.user.phone}, {datetime.strftime(appointment.date_time, "%d.%m")} в {datetime.strftime(appointment.date_time, "%H:%M")}" for appointment in schedule_dict["users_schedule"]),
+            *(
+            f'@{appointment.user.name} - {appointment.user.phone}, {datetime.strftime(appointment.date_time, "%d.%m")} в {datetime.strftime(appointment.date_time, "%H:%M")}'
+            for appointment in schedule_dict["users_schedule"]),
             marker="⏺️",
         ).as_html()
     if not schedule_dict.values():
@@ -157,7 +148,7 @@ async def watch_schedule(callback: CallbackQuery, session: AsyncSession):
         await callback.message.edit_text("Расписание на неделю не составлено", reply_markup=back_admin_kb)
 
 
-@admin_router.callback_query(F.data.startswith("watch_user_appointment_"))
+@admin_router_schedule.callback_query(F.data.startswith("watch_user_appointment_"))
 async def watch_user_appointment(callback: CallbackQuery, session: AsyncSession):
     """
     Watch user appointment info
@@ -172,82 +163,3 @@ async def watch_user_appointment(callback: CallbackQuery, session: AsyncSession)
     await callback.message.edit_text(
         f"Пользователь - @{user_data.user.name}\nТелефон - +{user_data.user.phone}\nДата записи - {date}\nВремя записи - {time}",
         reply_markup=await generate_back_kb_to_time_admin(date))
-
-
-@admin_router.callback_query(F.data == "manage_users")
-async def manage_users(callback: CallbackQuery, session: AsyncSession):
-    """
-    Manage users
-
-    :param callback:
-    :param session:
-    :return:
-    """
-    await callback.answer()
-    all_users = await orm_get_all_users(session)
-    free_users = []
-    blocked_users = []
-    for user in all_users:
-        if user.status:
-            free_users.append(user)
-        else:
-            blocked_users.append(user)
-    message_text = "Добро пожаловать в управление пользователями бота.\nДля блокировки пользователя найдите соответствующего пользователя и нажмите на соответсвующую команду:\nblock_user - заблокировать\nfree_user - разблокировать\n\n"
-    if free_users:
-        message_text += as_marked_section(
-            Bold("Активные пользователи:"),
-            *(f"/block_user_{user.id} - @{user.name} - +{user.phone}" for user in free_users),
-            marker="✅",
-        ).as_html()
-    else:
-        message_text += as_marked_section(
-            Bold("Активные пользователи:"),
-            "Нет активных пользователей",
-            marker="✅",
-        ).as_html()
-
-    if blocked_users:
-        message_text += as_marked_section(
-            Bold("\n\nЗаблокированные пользователи:"),
-            *(f"/free_user_{user.id} - @{user.name} - +{user.phone}" for user in blocked_users),
-            marker="🚫",
-        ).as_html()
-    else:
-        message_text += as_marked_section(
-            Bold("\n\nЗаблокированные пользователи:"),
-            "Нет заблокированных пользователей",
-            marker="🚫",
-        ).as_html()
-
-    await callback.message.edit_text(message_text, reply_markup=back_admin_kb)
-
-
-@admin_router.message(lambda message: message.text and message.text.startswith("/block_user"))
-async def block_user(message: Message, session: AsyncSession):
-    """
-    Block user
-
-    :param message:
-    :param session:
-    :return:
-    """
-    user_id = int(message.text.split('_')[-1])
-    if user_id not in admin_ids:
-        await orm_update_user_status_by_id(session, user_id, False)
-        await message.answer("Пользователь заблокирован", reply_markup=admin_kb)
-    else:
-        await message.answer("Нельзя заблокировать администратора", reply_markup=admin_kb)
-
-
-@admin_router.message(lambda message: message.text and message.text.startswith("/free_user"))
-async def free_user(message: Message, session: AsyncSession):
-    """
-    Free user
-
-    :param message:
-    :param session:
-    :return:
-    """
-    user_id = int(message.text.split('_')[-1])
-    await orm_update_user_status_by_id(session, user_id, True)
-    await message.answer("Пользователь разблокирован", reply_markup=admin_kb)
