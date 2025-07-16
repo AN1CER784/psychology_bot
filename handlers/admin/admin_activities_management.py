@@ -1,9 +1,10 @@
-from aiogram import F, Router, Bot
+from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.formatting import as_marked_section, Bold
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from common.utils import delete_stored_message, send_and_store_message
 from database.models import Test, Topic, ActualActivity
 from database.orm_queries.common import orm_get_all_models, orm_delete_model, orm_get_and_update_or_create_model
 from filters.admin_filter import IsAdmin
@@ -83,20 +84,6 @@ async def activate_topic(message: Message, state: FSMContext, session: AsyncSess
     await orm_get_and_update_or_create_model(session, ActualActivity, {"id": 1, "topic_id": topic_id})
     await message.answer("Рубрика стала актуальной для пользователей", reply_markup=admin_user_activities_kb)
 
-
-async def send_and_store_message(callback: CallbackQuery, message_text: str, reply_markup, state: FSMContext):
-    msg = await callback.message.edit_text(message_text, reply_markup=reply_markup)
-    await state.update_data(stored_message_id=msg.message_id, stored_chat_id=msg.chat.id)
-
-
-async def delete_stored_message(state: FSMContext, bot: Bot):
-    data = await state.get_data()
-    msg_id = data.get("stored_message_id")
-    chat_id = data.get("stored_chat_id")
-
-    if msg_id and chat_id:
-        await bot.delete_message(chat_id=chat_id, message_id=msg_id)
-        await state.update_data(stored_message_id=None, stored_chat_id=None)
 
 
 async def generate_activities_message(session, command_line, marker="✅"):

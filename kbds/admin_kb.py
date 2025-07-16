@@ -49,10 +49,7 @@ admin_add_test_item_kb = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Добавить вопрос", callback_data="add_question")]
 ])
 
-admin_continue_kb = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Продолжить", callback_data="continue")],
-    [InlineKeyboardButton(text="⬅️Вернуться в меню админа", callback_data="back_to_admin")]
-])
+
 
 
 async def generate_back_kb_to_time_admin(date: str):
